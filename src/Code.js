@@ -231,7 +231,7 @@ function notify_(matches) {
   }
 
   if (email) {
-    GmailApp.sendEmail(email, `CrowdWorks new matches: ${matches.length}`, message);
+    MailApp.sendEmail(email, `CrowdWorks new matches: ${matches.length}`, message);
   }
 }
 
@@ -254,4 +254,3 @@ function deleteTriggers_(handlerName) {
     .filter((trigger) => trigger.getHandlerFunction() === handlerName)
     .forEach((trigger) => ScriptApp.deleteTrigger(trigger));
 }
-

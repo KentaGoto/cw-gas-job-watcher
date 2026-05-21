@@ -2,7 +2,7 @@
 
 CloudWorks search result pages are checked periodically with Google Apps Script.
 New matching jobs are saved to Google Sheets and optionally sent to Google Chat
-or Gmail.
+or email.
 
 ## What It Does
 
@@ -12,7 +12,7 @@ or Gmail.
 - Matches jobs by keywords such as GAS, Google Apps Script, spreadsheets, APIs,
   ChatGPT, and Gemini
 - Stores results in a spreadsheet
-- Notifies Google Chat and/or Gmail
+- Notifies Google Chat and/or email
 - Runs every 3 hours by time-based trigger
 
 ## Setup
@@ -51,4 +51,3 @@ The script creates a `jobs` sheet with these columns:
 This tool is intentionally conservative. It checks search result pages on a
 3-hour interval and fetches detail pages only for URLs that have not been seen
 before.
-
