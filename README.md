@@ -25,7 +25,7 @@ or email.
 | Key | Required | Example |
 | --- | --- | --- |
 | `SPREADSHEET_ID` | Yes | `1abc...xyz` |
-| `SEARCH_URLS` | Yes | `["https://crowdworks.jp/public/jobs/search?..."]` |
+| `SEARCH_URLS` | Yes | `["https://crowdworks.jp/public/jobs/search?search%5Bkeywords%5D=GAS"]` |
 | `KEYWORDS` | No | `["GAS","Google Apps Script","スプレッドシート","API連携","ChatGPT","Gemini"]` |
 | `CHAT_WEBHOOK_URL` | No | `https://chat.googleapis.com/...` |
 | `NOTIFY_EMAIL` | No | `you@example.com` |

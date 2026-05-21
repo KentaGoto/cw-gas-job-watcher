@@ -160,6 +160,11 @@ function fetchText_(url) {
 function extractJobCandidates_(html, sourceUrl) {
   const base = sourceUrl.match(/^https?:\/\/[^/]+/)[0];
   const candidates = new Map();
+
+  extractEmbeddedJobCandidates_(html, base).forEach((candidate) => {
+    candidates.set(candidate.url, candidate);
+  });
+
   const linkPattern = /<a\b[^>]*href=["']([^"']*\/public\/jobs\/\d+[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match;
 
@@ -181,6 +186,29 @@ function extractJobCandidates_(html, sourceUrl) {
   }
 
   return Array.from(candidates.values());
+}
+
+function extractEmbeddedJobCandidates_(html, base) {
+  const match = html.match(/<div\b[^>]*id=["']vue-container["'][^>]*data=["']([^"']+)["']/i);
+  if (!match) return [];
+
+  try {
+    const data = JSON.parse(decodeHtml_(match[1]));
+    const jobOffers = data.searchResult && data.searchResult.job_offers;
+    if (!Array.isArray(jobOffers)) return [];
+
+    return jobOffers
+      .map((item) => item.job_offer)
+      .filter((job) => job && job.id)
+      .map((job) => ({
+        url: `${base}/public/jobs/${job.id}`,
+        title: job.title || '',
+        snippet: job.description_digest || '',
+      }));
+  } catch (error) {
+    Logger.log(`Failed to parse embedded job data: ${error.message}`);
+    return [];
+  }
 }
 
 function normalizeUrl_(href, base) {
