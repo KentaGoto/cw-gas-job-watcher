@@ -14,7 +14,7 @@ or email.
   ChatGPT, and Gemini
 - Stores results in a spreadsheet
 - Notifies Google Chat and/or email
-- Runs every 3 hours by time-based trigger
+- Runs every 4 hours by time-based trigger
 
 ## Setup
 
@@ -33,7 +33,7 @@ or email.
 | `NOTIFY_EMAIL` | No | `you@example.com` |
 
 5. Run `setup()` once from the Apps Script editor.
-6. Run `installTimeTrigger()` once to schedule checks every 3 hours.
+6. Run `installTimeTrigger()` once to schedule checks every 4 hours.
 
 ## Spreadsheet Columns
 
@@ -51,6 +51,6 @@ The script creates a `jobs` sheet with these columns:
 ## Notes
 
 This tool is intentionally conservative. It checks search result pages on a
-3-hour interval and fetches detail pages only for URLs that have not been seen
+4-hour interval and fetches detail pages only for URLs that have not been seen
 before. Pagination is disabled by default beyond page 1. Set
 `SEARCH_MAX_PAGES` when you want to scan deeper result pages.

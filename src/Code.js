@@ -28,7 +28,7 @@ function setup() {
 
 function installTimeTrigger() {
   deleteTriggers_('checkNewJobs');
-  ScriptApp.newTrigger('checkNewJobs').timeBased().everyHours(3).create();
+  ScriptApp.newTrigger('checkNewJobs').timeBased().everyHours(4).create();
 }
 
 function checkNewJobs() {
