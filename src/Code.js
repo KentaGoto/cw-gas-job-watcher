@@ -8,6 +8,15 @@ const CONFIG = {
     'ChatGPT',
     'Gemini',
   ],
+  defaultRemoteKeywords: [
+    '在宅',
+    '在宅勤務',
+    '完全在宅',
+    'リモート',
+    'フルリモート',
+    'リモートワーク',
+    'オンライン',
+  ],
 };
 
 const HEADERS = [
@@ -46,6 +55,8 @@ function checkNewJobs() {
   Logger.log(`Checking ${searchUrls.length} search URL(s).`);
 
   const keywords = readJsonProperty_(props, 'KEYWORDS', CONFIG.defaultKeywords);
+  const requireRemote = readBooleanProperty_(props, 'REQUIRE_REMOTE', true);
+  const remoteKeywords = readJsonProperty_(props, 'REMOTE_KEYWORDS', CONFIG.defaultRemoteKeywords);
   const maxPages = readNumberProperty_(props, 'SEARCH_MAX_PAGES', 1);
   const sheet = getJobsSheet_();
   ensureHeader_(sheet);
@@ -79,7 +90,14 @@ function checkNewJobs() {
         const detailHtml = fetchText_(candidate.url);
         const title = extractTitle_(detailHtml) || candidate.title || candidate.url;
         const text = htmlToText_(detailHtml);
-        const matchedKeywords = matchKeywords_(`${title}\n${text}`, keywords);
+        const searchableText = `${title}\n${candidate.snippet || ''}\n${text}`;
+
+        if (requireRemote && !containsAnyKeyword_(searchableText, remoteKeywords)) {
+          Logger.log(`Not remote: ${candidate.url}`);
+          return;
+        }
+
+        const matchedKeywords = matchKeywords_(searchableText, keywords);
         const status = matchedKeywords.length ? 'matched' : 'seen';
 
         const row = [
@@ -175,6 +193,18 @@ function readNumberProperty_(props, key, fallback) {
   }
 
   return Math.floor(number);
+}
+
+// true/falseの設定値を読む。未設定ならfallbackを使う。
+function readBooleanProperty_(props, key, fallback) {
+  const value = props.getProperty(key);
+  if (!value) return fallback;
+
+  const normalized = String(value).trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+
+  throw new Error(`Script Property ${key} must be true or false.`);
 }
 
 // 検索URLにpageパラメータを付ける。既にpageが付いている場合は置き換える。
@@ -331,6 +361,11 @@ function decodeHtml_(text) {
 function matchKeywords_(text, keywords) {
   const normalizedText = text.toLowerCase();
   return keywords.filter((keyword) => normalizedText.includes(String(keyword).toLowerCase()));
+}
+
+// 指定したキーワードのどれかが本文に含まれるかを判定する。
+function containsAnyKeyword_(text, keywords) {
+  return matchKeywords_(text, keywords).length > 0;
 }
 
 // 通知やシート表示で長くなりすぎないよう、本文を短く丸める。
