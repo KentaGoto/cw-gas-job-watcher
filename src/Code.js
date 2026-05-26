@@ -377,6 +377,7 @@ function makeSnippet_(text) {
 function notify_(matches) {
   const props = PropertiesService.getScriptProperties();
   const message = buildNotificationMessage_(matches);
+  const htmlMessage = buildNotificationHtml_(matches);
   const webhookUrl = props.getProperty('CHAT_WEBHOOK_URL');
   const email = props.getProperty('NOTIFY_EMAIL');
 
@@ -390,7 +391,12 @@ function notify_(matches) {
   }
 
   if (email) {
-    MailApp.sendEmail(email, `CrowdWorks new matches: ${matches.length}`, message);
+    MailApp.sendEmail({
+      to: email,
+      subject: `CrowdWorks 新着候補 ${matches.length}件`,
+      body: message,
+      htmlBody: htmlMessage,
+    });
   }
 }
 
@@ -407,6 +413,54 @@ function buildNotificationMessage_(matches) {
   });
 
   return lines.join('\n');
+}
+
+// HTMLメール用の本文を作る。メールクライアントで崩れにくいよう、単純な構造とインラインCSSにする。
+function buildNotificationHtml_(matches) {
+  const items = matches.slice(0, 10);
+  const extraCount = Math.max(0, matches.length - items.length);
+  const cards = items.map((match, index) => buildJobCardHtml_(match, index)).join('');
+  const extraNote = extraCount
+    ? `<p style="margin: 16px 0 0; color: #6b7280; font-size: 13px;">他 ${extraCount} 件はスプレッドシートで確認してください。</p>`
+    : '';
+
+  return `
+    <div style="margin: 0; padding: 24px; background: #f6f8fa; color: #24292f; font-family: Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;">
+      <div style="max-width: 720px; margin: 0 auto;">
+        <div style="margin-bottom: 18px;">
+          <p style="margin: 0 0 6px; color: #57606a; font-size: 13px;">CrowdWorks Job Watcher</p>
+          <h1 style="margin: 0; font-size: 22px; line-height: 1.35; color: #0969da;">新着候補が ${matches.length} 件見つかりました</h1>
+        </div>
+        ${cards}
+        ${extraNote}
+      </div>
+    </div>
+  `;
+}
+
+function buildJobCardHtml_(match, index) {
+  const keywords = match.matchedKeywords
+    .map((keyword) => `<span style="display: inline-block; margin: 0 6px 6px 0; padding: 3px 8px; border-radius: 999px; background: #ddf4ff; color: #0969da; font-size: 12px;">${escapeHtml_(keyword)}</span>`)
+    .join('');
+
+  return `
+    <div style="margin: 0 0 14px; padding: 16px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px;">
+      <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px;">候補 ${index + 1}</p>
+      <h2 style="margin: 0 0 10px; font-size: 17px; line-height: 1.45; color: #24292f;">${escapeHtml_(match.title)}</h2>
+      <div style="margin: 0 0 10px;">${keywords}</div>
+      <p style="margin: 0 0 12px; color: #57606a; font-size: 14px; line-height: 1.7;">${escapeHtml_(match.snippet)}</p>
+      <a href="${escapeHtml_(match.url)}" style="display: inline-block; padding: 8px 12px; border-radius: 6px; background: #2da44e; color: #ffffff; font-size: 14px; text-decoration: none;">案件ページを開く</a>
+    </div>
+  `;
+}
+
+function escapeHtml_(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // 指定した関数名のトリガーを削除する。
